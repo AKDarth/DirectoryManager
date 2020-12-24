@@ -95,7 +95,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
-				if (Fragment.SerializedTable[Component.Name]) then
+				if rawset(Fragment.SerializedTable, Component.Name) then
 					ModuleBuffer[Component.Name] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;
@@ -103,9 +103,9 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 			
 			for Index, Component in pairs(LocatedGetter) do
-				if (Fragment.SerializedTable[Index]) then
-					ModuleBuffer[Index] = Component;
-				end;
+				if (rawget(Fragment.SerializedTable, Index)) then -- Fragment.SerializedTable is a wrapper hooked with an __index method
+ 					ModuleBuffer[Index] = Component;
+				end
 			end;
 		end;
 	end;

@@ -70,7 +70,7 @@ local function SerializePathArguments(Table) -- SerializePathArguments (Table: t
 end;
 
 local Environments = {
-	['Client'] = RunService:IsClient() and Players.LocalPlayer.PlayerScripts.Client,
+	['Client'] = RunService:IsClient() and Players.LocalPlayer.Backpack.Client,
 	['Server'] = RunService:IsServer() and game:GetService('ServerScriptService').Server, -- We don't define the service at the top of our script just incase the client is trying to access it
 	['Shared'] = ReplicatedStorage:WaitForChild('Shared'),
 };

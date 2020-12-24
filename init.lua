@@ -81,23 +81,23 @@ local DirectoryManager = {
 DirectoryManager.ClassName = 'Directory';
 
 function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Information: table)
-	Information = ( type(Information) == 'string' and Information ) or Error.With(): InvalidArgument():At {Line = 95, Function = '.PathSearchAsync', ValueName = type(Information),};
+	Information = ( type(Information) == 'table' and Information ) or Error.With(): InvalidArgument():At {Line = 95, Function = '.PathSearchAsync', ValueName = type(Information),};
 	
 	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
 	for _, Fragment in ipairs(SerializedData) do		
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
-				if (Fragment.SerializedData[Component.Name]) then
-					ModuleBuffer[#ModuleBuffer + 1] = DirectoryManager.SafeLoadComponent(Component);
+				if (Fragment.SerializedTable[Component.Name]) then
+					ModuleBuffer[Component.Name] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;
 		else
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 			
 			for Index, Component in pairs(LocatedGetter) do
-				if (Fragment.SerializedData[Index]) then
-					ModuleBuffer[#ModuleBuffer + 1] = Component;
+				if (Fragment.SerializedTable[Index]) then
+					ModuleBuffer[Index] = Component;
 				end;
 			end;
 		end;
@@ -138,5 +138,5 @@ function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Co
 	local Success, Result = pcall(require, Component);
 	return ( Success == true ) and Result;
 end;
- 
+
 return DirectoryManager;

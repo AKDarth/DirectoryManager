@@ -75,7 +75,10 @@ local Environments = {
 
 -- // Main Manager (Utilizes all the code written above)
 
-local DirectoryManager = {_InternalGetters = {},};
+local DirectoryManager = {
+	_InternalGetters = {},
+	_HasInitialized = {Client = true, Server = true},
+};
 DirectoryManager.ClassName = 'Directory';
 
 function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Information: table)
@@ -92,7 +95,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 			end;
 		else
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
-
+			
 			for Index, Component in pairs(LocatedGetter) do
 				if (Fragment.SerializedData[Index]) then
 					ModuleBuffer[#ModuleBuffer + 1] = Component;
@@ -108,21 +111,26 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 	RequestedEnvironment = ( type(RequestedEnvironment) == 'string' and RequestedEnvironment ) or Error.With(): InvalidArgument():At {Line = 103, Function = '.Init', ValueName = type(RequestedEnvironment),};
 	RequestedEnvironment = Environments[RequestedEnvironment] or Error.With(): InvalidArgument():At {Line = 107, Function = '.Init', ValueName = RequestedEnvironment,};
 	
-	local InternalGetters = DirectoryManager._InternalGetters;
-	InternalGetters[RequestedEnvironment] = InternalGetters[RequestedEnvironment] or {};
+	if (not DirectoryManager._HasInitialized[RequestedEnvironment.Name]) then return end;
 	
+	local InternalGetters = DirectoryManager._InternalGetters;
+	InternalGetters[RequestedEnvironment.Name] = InternalGetters[RequestedEnvironment.Name] or {};
+	
+	local CachedEnvironment = InternalGetters[RequestedEnvironment.Name];
 	for _, Pathway in ipairs(RequestedEnvironment:GetDescendants()) do
-		local Derived = DirectoryManager.SafeLoadComponent(Pathway);
+		local Derived = DirectoryManager.SafeLoadComponent (Pathway);
 		Derived = Derived or warn(('Unable to load module: %s'):format(Pathway.Name));
 		
 		if (type(Derived) == 'table' and Derived.Init) then
-			local _ = ( type(Derived.Init) == 'function' ) and Derived:Init();
+			local _ = ( type(Derived.Init) == 'function' ) and Derived:Init ();
 		end;
 		
-		InternalGetters[Pathway.Name] = Derived;
+		CachedEnvironment[Pathway.Name] = Derived;
 	end;
 	
-	return true, 
+	DirectoryManager._HasInitialized[RequestedEnvironment.Name] = nil;
+	
+	return true, CachedEnvironment;
 end;
 
 function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Component: userdata)

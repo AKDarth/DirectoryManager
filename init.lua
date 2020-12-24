@@ -81,29 +81,22 @@ DirectoryManager.ClassName = 'Directory';
 function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Information: table)
 	Information = ( type(Information) == 'string' and Information ) or Error.With(): InvalidArgument():At {Line = 95, Function = '.PathSearchAsync', ValueName = type(Information),};
 	
-	local SerializedData = SerializePathArguments (Information);
-	local ModuleBuffer = {};
+	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
 	
-	for _, Fragment in ipairs(SerializedData) do
-		Fragment = Fragment and TableWrapper.New(Fragment);
+	for _, Fragment in ipairs(SerializedData) do		
 		
-		local CachedEnvironment = Fragment.DeepSearch ('Environment');
-		local BagReference = Fragment.DeepSearch ('SerializedTable');
-		
-		if ( CachedEnvironment == 'Shared' ) then
-			
-			for _, Component in ipairs(Environments[CachedEnvironment]:GetDescendants()) do
-				if BagReference[Component.Name] then
+		if ( Fragment.Environment == 'Shared' ) then
+			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
+				if Fragment.SerializedData[Component.Name] then
 					ModuleBuffer[#ModuleBuffer + 1] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;
 		else
-			local LocatedGetter = DirectoryManager._InternalGetters[CachedEnvironment] or Error.With(): InvalidArgument():At {
-				Line = 104, Function = '.PathSearchAsync', ValueName = SerializedData.Environment
-			};
+			
+			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 
 			for Index, Component in pairs(LocatedGetter) do
-				if BagReference[Index] then
+				if Fragment.SerializedData[Index] then
 					ModuleBuffer[#ModuleBuffer + 1] = Component;
 				end;
 			end;
@@ -117,15 +110,26 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 	RequestedEnvironment = ( type(RequestedEnvironment) == 'string' and RequestedEnvironment ) or Error.With(): InvalidArgument():At {Line = 103, Function = '.Init', ValueName = type(RequestedEnvironment),};
 	RequestedEnvironment = Environments[RequestedEnvironment] or Error.With(): InvalidArgument():At {Line = 107, Function = '.Init', ValueName = RequestedEnvironment,};
 	
+	local InternalGetters = DirectoryManager._InternalGetters;
+	
 	for _, Pathway in ipairs(RequestedEnvironment:GetDescendants()) do
+		local Derived = DirectoryManager.SafeLoadComponent(Pathway);
+		Derived = Derived or warn(('Unable to load module: %s'):format(Pathway.Name));
 		
+		if type(Derived) == 'table' and Derived.Init then
+			local _ = ( type(Derived.Init) == 'function' ) and Derived:Init();
+		end;
+		
+		InternalGetters[Pathway.Name] = Derived;
 	end;
+	
 end;
 
 function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Component: userdata)
 	Component = ( type(Component) == 'userdata' and Component ) or Error.With(): InvalidArgument():At {Line = 120, Function = '.SafeLoadComponent', ValueName = type(Component),};
 	
-	
+	local Success, Result = pcall(require, Component);
+	return ( Success == true ) and Result;
 end;
 
 return DirectoryManager;

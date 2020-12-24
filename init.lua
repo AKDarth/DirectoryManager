@@ -15,14 +15,13 @@
 		
 	Initializing:
 	
-		local function MainInit(Path, Environment) // Handled on Client and Server
-			Environment = ( type(Environment) == 'string' and Environment ) or error('Environment argument must be a string!');
-			Path = ( type(Path) == 'string and Path ) or error('Path argument must be a string!');
-			
-			return DirectoryManager.Init(Path, Environment);
+		local function InitializeServer(Environment)
+			Environment = ( type(Environment) == 'string' and Environment ) or Error.With(): InvalidArgument():At {Line = 11, Function = 'InitializeServer', ValueName = Environment};
+	
+			return SystemsDirectory.Init(Environment);
 		end;
-		
-		local _ = MainInit(PlayerScripts.Client, 'Client') and print('Success!');
+
+		local Worked, Packed = InitializeServer('Server');
 
 --]]
 

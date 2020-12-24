@@ -87,7 +87,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
-				if Fragment.SerializedData[Component.Name] then
+				if (Fragment.SerializedData[Component.Name]) then
 					ModuleBuffer[#ModuleBuffer + 1] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;
@@ -96,7 +96,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 
 			for Index, Component in pairs(LocatedGetter) do
-				if Fragment.SerializedData[Index] then
+				if (Fragment.SerializedData[Index]) then
 					ModuleBuffer[#ModuleBuffer + 1] = Component;
 				end;
 			end;
@@ -111,12 +111,13 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 	RequestedEnvironment = Environments[RequestedEnvironment] or Error.With(): InvalidArgument():At {Line = 107, Function = '.Init', ValueName = RequestedEnvironment,};
 	
 	local InternalGetters = DirectoryManager._InternalGetters;
+	InternalGetters[RequestedEnvironment] = InternalGetters[RequestedEnvironment] or {};
 	
 	for _, Pathway in ipairs(RequestedEnvironment:GetDescendants()) do
 		local Derived = DirectoryManager.SafeLoadComponent(Pathway);
 		Derived = Derived or warn(('Unable to load module: %s'):format(Pathway.Name));
 		
-		if type(Derived) == 'table' and Derived.Init then
+		if (type(Derived) == 'table' and Derived.Init) then
 			local _ = ( type(Derived.Init) == 'function' ) and Derived:Init();
 		end;
 		

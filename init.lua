@@ -75,32 +75,42 @@ local Environments = {
 
 -- // Main Manager (Utilizes all the code written above)
 
-local DirectoryManager = {
-	_InternalGetters = {},
-};
-
+local DirectoryManager = {_InternalGetters = {},};
 DirectoryManager.ClassName = 'Directory';
 
 function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Information: table)
 	Information = ( type(Information) == 'string' and Information ) or Error.With(): InvalidArgument():At {Line = 95, Function = '.PathSearchAsync', ValueName = type(Information),};
 	
 	local SerializedData = SerializePathArguments (Information);
-	SerializedData = SerializedData and TableWrapper.New(SerializedData);
+	local ModuleBuffer = {};
 	
-	local CachedEnvironment = SerializedData.DeepSearch ('Environment');
-	if ( CachedEnvironment == 'ReplicatedStorage' ) then
-		for _, Component in ipairs(Environments[SerializedData.Environment]) do
-
-		end;
-	else
-		local Getter = DirectoryManager._InternalGetters[CachedEnvironment] or Error.With(): InvalidArgument():At {
-			Line = 104, Function = '.PathSearchAsync', ValueName = SerializedData.Environment
-		};
+	for _, Fragment in ipairs(SerializedData) do
+		Fragment = Fragment and TableWrapper.New(Fragment);
 		
-		for Index, Component in pairs(Getter) do
+		local CachedEnvironment = Fragment.DeepSearch ('Environment');
+		local BagReference = Fragment.DeepSearch ('SerializedTable');
+		
+		if ( CachedEnvironment == 'Shared' ) then
 			
+			for _, Component in ipairs(Environments[CachedEnvironment]:GetDescendants()) do
+				if BagReference[Component.Name] then
+					ModuleBuffer[#ModuleBuffer + 1] = DirectoryManager.SafeLoadComponent(Component);
+				end;
+			end;
+		else
+			local LocatedGetter = DirectoryManager._InternalGetters[CachedEnvironment] or Error.With(): InvalidArgument():At {
+				Line = 104, Function = '.PathSearchAsync', ValueName = SerializedData.Environment
+			};
+
+			for Index, Component in pairs(LocatedGetter) do
+				if BagReference[Index] then
+					ModuleBuffer[#ModuleBuffer + 1] = Component;
+				end;
+			end;
 		end;
 	end;
+	
+	return ModuleBuffer;
 end;
 
 function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironment: string)

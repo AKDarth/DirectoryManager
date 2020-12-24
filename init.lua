@@ -21,7 +21,7 @@
 			return SystemsDirectory.Init(Environment);
 		end;
 
-		local Worked, Packed = InitializeServer('Server');
+		local Worked, PackedEnvironment = InitializeServer('Server');
 
 --]]
 

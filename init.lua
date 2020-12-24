@@ -82,7 +82,6 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 	Information = ( type(Information) == 'string' and Information ) or Error.With(): InvalidArgument():At {Line = 95, Function = '.PathSearchAsync', ValueName = type(Information),};
 	
 	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
-	
 	for _, Fragment in ipairs(SerializedData) do		
 		
 		if ( Fragment.Environment == 'Shared' ) then
@@ -92,7 +91,6 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 				end;
 			end;
 		else
-			
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 
 			for Index, Component in pairs(LocatedGetter) do
@@ -124,6 +122,7 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 		InternalGetters[Pathway.Name] = Derived;
 	end;
 	
+	return true, 
 end;
 
 function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Component: userdata)

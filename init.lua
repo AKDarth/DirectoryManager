@@ -36,6 +36,9 @@ local Error = require(ReplicatedStorage:WaitForChild('Shared').Utilities.Error);
 
 -- // Constants (Variables, Functions, Tables)
 
+local RunServiceHeartbeat = RunService.Heartbeat;
+local IsYielding     = false;
+
 local TableWrapper = TableExtender._TableWrapper;
 local function ReturnCompatability(Table, IteratorFlag) -- ReturnCompatability (Table: table, IteratorFlag: boolean)
 	Table = ( type(Table) == 'table' and Table ) or Error.With(): InvalidArgument():At {Line = 41, Function = 'ReturnCompatability', ValueName = tostring(Table),};
@@ -85,6 +88,10 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 	
 	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
 	for _, Fragment in ipairs(SerializedData) do		
+		if DirectoryManager._HasInitialized[Fragment.Environment] then
+			IsYielding = IsYielding == false;
+			repeat RunService.Heartbeat:Wait() until not IsYielding;
+		end;
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
@@ -128,6 +135,7 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 	end;
 	
 	DirectoryManager._HasInitialized[RequestedEnvironment.Name] = nil;
+	IsYielding = IsYielding and false;
 	
 	return true, CachedEnvironment;
 end;

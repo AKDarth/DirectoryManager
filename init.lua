@@ -70,9 +70,9 @@ local function SerializePathArguments(Table) -- SerializePathArguments (Table: t
 end;
 
 local Environments = {
-	['Client'] = RunService:IsClient() and Players.LocalPlayer.PlayerScripts.Client;
-	['Server'] = RunService:IsServer() and game:GetService('ServerScriptService').Server; -- We don't define the service at the top of our script just incase the client is trying to access it
-	['Shared'] = ReplicatedStorage:WaitForChild('Shared');
+	['Client'] = RunService:IsClient() and Players.LocalPlayer.PlayerScripts.Client,
+	['Server'] = RunService:IsServer() and game:GetService('ServerScriptService').Server, -- We don't define the service at the top of our script just incase the client is trying to access it
+	['Shared'] = ReplicatedStorage:WaitForChild('Shared'),
 };
 
 -- // Main Manager (Utilizes all the code written above)
@@ -105,7 +105,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 			for Index, Component in pairs(LocatedGetter) do
 				if (rawget(Fragment.SerializedTable, Index)) then -- Fragment.SerializedTable is a wrapper hooked with an __index method
  					ModuleBuffer[Index] = Component;
-				end
+				end;
 			end;
 		end;
 	end;

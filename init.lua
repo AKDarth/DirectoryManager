@@ -138,5 +138,5 @@ function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Co
 	local Success, Result = pcall(require, Component);
 	return ( Success == true ) and Result;
 end;
-
+ 
 return DirectoryManager;

@@ -8,7 +8,7 @@
 	
 	Searching:
 	
-		local TableExtender, Input = DirectoryManager.PathSearchAsync {
+		local PackedModules = DirectoryManager.PathSearchAsync {
 			'Shared: TableExtender, Input',
 			'Client: Inventory, Quest',
 		};

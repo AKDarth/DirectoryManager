@@ -88,14 +88,14 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 	
 	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
 	for _, Fragment in ipairs(SerializedData) do		
-		if DirectoryManager._HasInitialized[Fragment.Environment] then
+		if (DirectoryManager._HasInitialized[Fragment.Environment]) then
 			IsYielding = IsYielding == false;
 			repeat RunService.Heartbeat:Wait() until not IsYielding;
 		end;
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
-				if rawset(Fragment.SerializedTable, Component.Name) then
+				if (rawget(Fragment.SerializedTable, Component.Name)) then
 					ModuleBuffer[Component.Name] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;

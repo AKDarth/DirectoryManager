@@ -10,6 +10,7 @@
 	
 		local TableExtender, Input = DirectoryManager.PathSearchAsync {
 			'Shared: TableExtender, Input',
+			'Client: Inventory, Quest',
 		};
 		
 	Initializing:
@@ -113,6 +114,8 @@ end;
 
 function DirectoryManager.SafeLoadComponent(Component) -- .SafeLoadComponent (Component: userdata)
 	Component = ( type(Component) == 'userdata' and Component ) or Error.With(): InvalidArgument():At {Line = 120, Function = '.SafeLoadComponent', ValueName = type(Component),};
+	
+	
 end;
 
 return DirectoryManager;

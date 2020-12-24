@@ -44,7 +44,7 @@ local function ReturnCompatability(Table, IteratorFlag) -- ReturnCompatability (
 	Table = ( type(Table) == 'table' and Table ) or Error.With(): InvalidArgument():At {Line = 41, Function = 'ReturnCompatability', ValueName = tostring(Table),};
 	local _ = ( type(IteratorFlag) == 'boolean' ) or Error.With(): InvalidArgument():At {Line = 42, Function = 'ReturnCompatability', ValueName = tostring(IteratorFlag),};
 
-	if (IteratorFlag) then
+	if ( IteratorFlag ) then
 		return ( Table[1] and ipairs ) or ( pairs(Table) and pairs );
 	end;
 
@@ -88,14 +88,14 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 	
 	local SerializedData, ModuleBuffer = SerializePathArguments (Information), {};
 	for _, Fragment in ipairs(SerializedData) do		
-		if (DirectoryManager._HasInitialized[Fragment.Environment]) then
+		if ( DirectoryManager._HasInitialized[Fragment.Environment] ) then
 			IsYielding = IsYielding == false;
 			repeat RunService.Heartbeat:Wait() until not IsYielding;
 		end;
 		
 		if ( Fragment.Environment == 'Shared' ) then
 			for _, Component in ipairs(Environments[Fragment.Environment]:GetDescendants()) do
-				if (rawget(Fragment.SerializedTable, Component.Name)) then
+				if ( rawget(Fragment.SerializedTable, Component.Name) ) then
 					ModuleBuffer[Component.Name] = DirectoryManager.SafeLoadComponent(Component);
 				end;
 			end;
@@ -103,7 +103,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 			local LocatedGetter = DirectoryManager._InternalGetters[Fragment.Environment] or warn('Environment does not exist!');
 			
 			for Index, Component in pairs(LocatedGetter) do
-				if (rawget(Fragment.SerializedTable, Index)) then -- Fragment.SerializedTable is a wrapper hooked with an __index method
+				if ( rawget(Fragment.SerializedTable, Index) ) then -- Fragment.SerializedTable is a wrapper hooked with an __index method
  					ModuleBuffer[Index] = Component;
 				end;
 			end;
@@ -117,7 +117,7 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 	RequestedEnvironment = ( type(RequestedEnvironment) == 'string' and RequestedEnvironment ) or Error.With(): InvalidArgument():At {Line = 103, Function = '.Init', ValueName = type(RequestedEnvironment),};
 	RequestedEnvironment = Environments[RequestedEnvironment] or Error.With(): InvalidArgument():At {Line = 107, Function = '.Init', ValueName = RequestedEnvironment,};
 	
-	if (not DirectoryManager._HasInitialized[RequestedEnvironment.Name]) then return end;
+	if ( not DirectoryManager._HasInitialized[RequestedEnvironment.Name] ) then return end;
 	
 	local InternalGetters = DirectoryManager._InternalGetters;
 	InternalGetters[RequestedEnvironment.Name] = InternalGetters[RequestedEnvironment.Name] or {};
@@ -127,7 +127,7 @@ function DirectoryManager.Init(RequestedEnvironment) -- .Init (RequestedEnvironm
 		local Derived = DirectoryManager.SafeLoadComponent (Pathway);
 		Derived = Derived or warn(('Unable to load module: %s'):format(Pathway.Name));
 		
-		if (type(Derived) == 'table' and Derived.Init) then
+		if ( type(Derived) == 'table' and Derived.Init ) then
 			local _ = ( type(Derived.Init) == 'function' ) and Derived:Init ();
 		end;
 		

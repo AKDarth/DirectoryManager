@@ -37,7 +37,7 @@ local Error = require(ReplicatedStorage:WaitForChild('Shared').Utilities.Error);
 -- // Constants (Variables, Functions, Tables)
 
 local RunServiceHeartbeat = RunService.Heartbeat;
-local IsYielding     = false;
+local IsYielding          = false;
 
 local TableWrapper = TableExtender._TableWrapper;
 local function ReturnCompatability(Table, IteratorFlag) -- ReturnCompatability (Table: table, IteratorFlag: boolean)
@@ -90,7 +90,7 @@ function DirectoryManager.PathSearchAsync(Information) -- .PathSearchAsync (Info
 	for _, Fragment in ipairs(SerializedData) do		
 		if (DirectoryManager._HasInitialized[Fragment.Environment]) then
 			IsYielding = IsYielding == false;
-			repeat RunService.Heartbeat:Wait() until not IsYielding;
+			repeat RunServiceHeartbeat:Wait() until not IsYielding;
 		end;
 		
 		if (Fragment.Environment == 'Shared') then

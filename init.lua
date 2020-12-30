@@ -90,3 +90,5 @@ function DirectoryManager.SafeLoadComponent(component)
 	local success, result = pcall(require, component)
 	return ( success == true ) and result
 end
+
+return DirectoryManager

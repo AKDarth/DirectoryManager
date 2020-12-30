@@ -39,7 +39,7 @@ local environments = {
 -- // Main Directory Functions
 local DirectoryManager = {
 	_internalGetters = {},
-	_hasNotInitialized = {Client = true, Server = true}
+	_hasNotInitialized = {Client = true, Server = true, Shared = true}
 }
 DirectoryManager.ClassName = 'DirectoryManager'
 

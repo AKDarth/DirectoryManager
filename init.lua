@@ -1,4 +1,5 @@
 --[[
+
 	----------------------------------------------------------
 	    	  Directory (Initializing and Searching)
 	----------------------------------------------------------
@@ -16,23 +17,26 @@
 	
 			return SystemsDirectory.Init(Environment);
 		end;
-		local Worked, PackedEnvironment = InitializeServer('Server');
+
+		local PackedEnvironment = InitializeServer('Server'); -- // Returns all the required modules from the environment
+
 --]]
 
 -- // Services / Modules
 local replicatedStorage = game:GetService('ReplicatedStorage');
-local runService        = game:GetService('RunService');
-local players           = game:GetService('Players');
+local runService = game:GetService('RunService')
+local players = game:GetService('Players');
+
+local signalHandler = require(script:WaitForChild('Signal')).new()
 
 -- // Constants (Variables, Functions, Tables)
 local runServiceHeartbeat = runService.Heartbeat;
-local isYielding          = false;
-
 local environments = {
 	['Client'] = runService:IsClient() and players.LocalPlayer.Backpack.Client,
 	['Server'] = runService:IsServer() and game:GetService('ServerScriptService').Server, -- We don't define the service at the top of our script just incase the client is trying to access it
 	['Shared'] = replicatedStorage:WaitForChild('Shared'),
 };
+local yieldingEnvironment = nil
 -- // Main Directory Functions
 local DirectoryManager = {
 	_internalGetters = {},
@@ -43,19 +47,20 @@ DirectoryManager.ClassName = 'DirectoryManager'
 function DirectoryManager.SearchPath(requestedEnvironment, ...)
 	requestedEnvironment = ( type(requestedEnvironment) == 'string' and requestedEnvironment ) or error('Environment argument must be a string')
 	local packedArguments, buffer = {...}, {}
-
-	local cachedEnvironment = environments[requestedEnvironment] or error('Requested environment does not exist')
-	if DirectoryManager._hasNotInitialized[cachedEnvironment] then
-		isYielding = isYielding == false
-		repeat runServiceHeartbeat:Wait() until not isYielding
+	
+	local indexedGetter = DirectoryManager._internalGetters[requestedEnvironment] or DirectoryManager.AwaitEnvironment(requestedEnvironment)
+	for _, componentName in ipairs(packedArguments) do
+		buffer[#buffer + 1] = indexedGetter[componentName]
 	end
-
-	for _, componentOne in ipairs(packedArguments) do
-		buffer[#buffer + 1] = DirectoryManager._internalGetters[requestedEnvironment][componentOne]
-	end
-
 	return unpack(buffer)
 end;
+function DirectoryManager.AwaitEnvironment(requestedEnvironment)
+	yieldingEnvironment = requestedEnvironment
+	signalHandler:Wait()
+	yieldingEnvironment = nil
+	
+	return DirectoryManager._internalGetters[requestedEnvironment]
+end
 function DirectoryManager.Init(requestedEnvironment)
 	requestedEnvironment = environments[requestedEnvironment] or error('Environment argument is not valid')
 	local internalGetters = DirectoryManager._internalGetters
@@ -74,11 +79,10 @@ function DirectoryManager.Init(requestedEnvironment)
 		
 		internalGetters[requestedEnvironment.Name][pathWay.Name] = derivedResult
 	end
-	
 	DirectoryManager._hasNotInitialized[requestedEnvironment.Name] = nil
-	isYielding = isYielding and false
+	local _ = requestedEnvironment.Name == yieldingEnvironment and signalHandler:Fire()
 
-	return true, internalGetters[requestedEnvironment.Name]
+	return internalGetters[requestedEnvironment.Name]
 end
 function DirectoryManager.SafeLoadComponent(component)
 	component = ( type(component) == 'userdata' and component ) or error('Component argument must be a userdata')

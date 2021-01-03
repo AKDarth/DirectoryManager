@@ -63,26 +63,23 @@ function DirectoryManager.AwaitEnvironment(requestedEnvironment)
 end
 function DirectoryManager.Init(requestedEnvironment)
 	requestedEnvironment = environments[requestedEnvironment] or error('Environment argument is not valid')
-	local internalGetters = DirectoryManager._internalGetters
-	internalGetters[requestedEnvironment.Name] = internalGetters[requestedEnvironment.Name] or {}
+	local internalGetters = DirectoryManager._internalGetters[requestedEnvironment.Name] or {}
 
 	for _, pathWay in ipairs(requestedEnvironment:GetDescendants()) do
 		local derivedResult = nil;
 		if pathWay.ClassName == 'ModuleScript' then
-			derivedResult = DirectoryManager.SafeLoadComponent(pathWay);
-			derivedResult = derivedResult or warn(('Unable to load module: %s'):format(pathWay.Name))
+			derivedResult = DirectoryManager.SafeLoadComponent(pathWay) or warn(('Unable to load module: %s'):format(pathWay.Name));
 
 			if type(derivedResult) == 'table' and derivedResult.Init then
 				local _ = ( type(derivedResult.Init) == 'function' ) and derivedResult:Init();
 			end
 		end
-		
-		internalGetters[requestedEnvironment.Name][pathWay.Name] = derivedResult
+		internalGetters[pathWay.Name] = derivedResult
 	end
 	DirectoryManager._hasNotInitialized[requestedEnvironment.Name] = nil
 	local _ = requestedEnvironment.Name == yieldingEnvironment and signalHandler:Fire()
 
-	return internalGetters[requestedEnvironment.Name]
+	return true, internalGetters
 end
 function DirectoryManager.SafeLoadComponent(component)
 	component = ( type(component) == 'userdata' and component ) or error('Component argument must be a userdata')

@@ -18,7 +18,7 @@
 			return SystemsDirectory.Init(Environment);
 		end;
 
-		local PackedEnvironment = InitializeServer('Server'); -- // Returns all the required modules from the environment
+		local Worked, PackedEnvironment = InitializeServer('Server'); -- // Returns all the required modules from the environment
 
 --]]
 

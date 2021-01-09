@@ -27,8 +27,6 @@ local replicatedStorage = game:GetService('ReplicatedStorage');
 local runService = game:GetService('RunService')
 local players = game:GetService('Players');
 
-local signalHandler = require(script:WaitForChild('Signal')).new()
-
 -- // Constants (Variables, Functions, Tables)
 local runServiceHeartbeat = runService.Heartbeat;
 local environments = {
@@ -36,7 +34,7 @@ local environments = {
 	['Server'] = runService:IsServer() and game:GetService('ServerScriptService').Server, -- We don't define the service at the top of our script just incase the client is trying to access it
 	['Shared'] = replicatedStorage:WaitForChild('Shared'),
 };
-local yieldingEnvironment = nil
+
 -- // Main Directory Functions
 local DirectoryManager = {
 	_internalGetters = {},
@@ -48,19 +46,18 @@ function DirectoryManager.SearchPath(requestedEnvironment, ...)
 	requestedEnvironment = ( type(requestedEnvironment) == 'string' and requestedEnvironment ) or error('Environment argument must be a string')
 	local packedArguments, buffer = {...}, {}
 	
-	local indexedGetter = DirectoryManager._internalGetters[requestedEnvironment] or DirectoryManager.AwaitEnvironment(requestedEnvironment)
+	local internalGetters = DirectoryManager._internalGetters
+	local indexedGetter = internalGetters[requestedEnvironment]
+	if not indexedGetter then
+		repeat runServiceHeartbeat:Wait() until internalGetters[requestedEnvironment]
+		indexedGetter = internalGetters[requestedEnvironment]
+	end
+	
 	for _, componentName in ipairs(packedArguments) do
 		buffer[#buffer + 1] = indexedGetter[componentName]
 	end
 	return unpack(buffer)
 end;
-function DirectoryManager.AwaitEnvironment(requestedEnvironment)
-	yieldingEnvironment = requestedEnvironment
-	signalHandler:Wait()
-	yieldingEnvironment = nil
-	
-	return DirectoryManager._internalGetters[requestedEnvironment]
-end
 function DirectoryManager.Init(requestedEnvironment)
 	requestedEnvironment = environments[requestedEnvironment] or error('Environment argument is not valid')
 	local internalGetters = DirectoryManager._internalGetters[requestedEnvironment.Name] or {}
@@ -78,7 +75,8 @@ function DirectoryManager.Init(requestedEnvironment)
 		internalGetters[pathWay.Name] = derivedResult
 	end
 	DirectoryManager._hasNotInitialized[requestedEnvironment.Name] = nil
-	local _ = requestedEnvironment.Name == yieldingEnvironment and signalHandler:Fire()
+	print(requestedEnvironment.Name .. ': ')
+	print(internalGetters)
 
 	return true, internalGetters
 end

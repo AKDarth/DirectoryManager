@@ -18,7 +18,7 @@
 			return SystemsDirectory.Init(Environment);
 		end;
 
-		local Worked, PackedEnvironment = InitializeServer('Server'); -- // Returns all the required modules from the environment
+		local PackedEnvironment = InitializeServer('Server'); -- // Returns all the required modules from the environment
 
 --]]
 
@@ -64,14 +64,15 @@ end
 function DirectoryManager.Init(requestedEnvironment)
 	requestedEnvironment = environments[requestedEnvironment] or error('Environment argument is not valid')
 	local internalGetters = DirectoryManager._internalGetters[requestedEnvironment.Name] or {}
-
+	
+	local initFuncName = ( runService:IsClient() and 'Client' or 'Server' ) .. 'Init'
 	for _, pathWay in ipairs(requestedEnvironment:GetDescendants()) do
 		local derivedResult = nil;
 		if pathWay.ClassName == 'ModuleScript' then
 			derivedResult = DirectoryManager.SafeLoadComponent(pathWay) or warn(('Unable to load module: %s'):format(pathWay.Name));
 
-			if type(derivedResult) == 'table' and derivedResult.Init then
-				local _ = ( type(derivedResult.Init) == 'function' ) and derivedResult:Init();
+			if type(derivedResult) == 'table' and derivedResult[initFuncName] then
+				local _ = ( type(derivedResult[initFuncName]) == 'function' ) and coroutine.wrap(derivedResult[initFuncName])(derivedResult)
 			end
 		end
 		internalGetters[pathWay.Name] = derivedResult

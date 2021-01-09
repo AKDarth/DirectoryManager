@@ -46,13 +46,13 @@ function DirectoryManager.SearchPath(requestedEnvironment, ...)
 	requestedEnvironment = ( type(requestedEnvironment) == 'string' and requestedEnvironment ) or error('Environment argument must be a string')
 	local packedArguments, buffer = {...}, {}
 	
-	local internalGetters = DirectoryManager._internalGetters
-	local indexedGetter = internalGetters[requestedEnvironment]
+	local indexedGetter = DirectoryManager._internalGetters[requestedEnvironment]
 	if not indexedGetter then
+		local internalGetters = DirectoryManager._internalGetters
+		
 		repeat runServiceHeartbeat:Wait() until internalGetters[requestedEnvironment]
 		indexedGetter = internalGetters[requestedEnvironment]
 	end
-	
 	for _, componentName in ipairs(packedArguments) do
 		buffer[#buffer + 1] = indexedGetter[componentName]
 	end

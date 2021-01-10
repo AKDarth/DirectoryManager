@@ -46,22 +46,23 @@ function DirectoryManager.SearchPath(requestedEnvironment, ...)
 	requestedEnvironment = ( type(requestedEnvironment) == 'string' and requestedEnvironment ) or error('Environment argument must be a string')
 	local packedArguments, buffer = {...}, {}
 	
-	local indexedGetter = DirectoryManager._internalGetters[requestedEnvironment]
-	if not indexedGetter then
-		local internalGetters = DirectoryManager._internalGetters
-		
-		repeat runServiceHeartbeat:Wait() until internalGetters[requestedEnvironment]
-		indexedGetter = internalGetters[requestedEnvironment]
-	end
+	local indexedGetter = DirectoryManager.AwaitEnvironment(requestedEnvironment)
 	for _, componentName in ipairs(packedArguments) do
 		buffer[#buffer + 1] = indexedGetter[componentName]
 	end
 	return unpack(buffer)
 end;
+function DirectoryManager.AwaitEnvironment(requestedEnvironment)
+	requestedEnvironment = ( type(requestedEnvironment) == 'string' and requestedEnvironment ) or error('Environment argument must be a string')
+	
+	repeat runServiceHeartbeat:Wait() until not DirectoryManager._hasNotInitialized[requestedEnvironment]
+	return DirectoryManager._internalGetters[requestedEnvironment]
+end
 function DirectoryManager.Init(requestedEnvironment)
 	requestedEnvironment = environments[requestedEnvironment] or error('Environment argument is not valid')
-	local internalGetters = DirectoryManager._internalGetters[requestedEnvironment.Name] or {}
+	DirectoryManager._internalGetters[requestedEnvironment.Name] = {}
 	
+	local internalGetters = DirectoryManager._internalGetters[requestedEnvironment.Name]
 	local initFuncName = ( runService:IsClient() and 'Client' or 'Server' ) .. 'Init'
 	for _, pathWay in ipairs(requestedEnvironment:GetDescendants()) do
 		local derivedResult = nil;
@@ -75,8 +76,6 @@ function DirectoryManager.Init(requestedEnvironment)
 		internalGetters[pathWay.Name] = derivedResult
 	end
 	DirectoryManager._hasNotInitialized[requestedEnvironment.Name] = nil
-	print(requestedEnvironment.Name .. ': ')
-	print(internalGetters)
 
 	return true, internalGetters
 end
